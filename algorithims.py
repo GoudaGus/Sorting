@@ -1,5 +1,7 @@
 """Hold algorithms for UI.py."""
 
+from random import shuffle
+
 
 def insertion_sort(input_list, r):
     """Use insertion sort on list."""
@@ -39,6 +41,6 @@ def selection_sort(input_list, iteration, r):
 
 
 def bogo_sort(input_list):
-    "Use bogo soort on list."
+    """Use bogo soort on list."""
     shuffle(input_list)
     return input_list

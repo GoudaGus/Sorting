@@ -1,8 +1,24 @@
 from tkinter import *
+from tkinter import filedialog
 from algorithims import *
 from random import shuffle
 from time import sleep
 
+
+
+# class FileIO():
+#     def __init__(self, parent):
+        
+#     def file_explorer():
+#         # Open file explorer
+#         filename = filedialog.askopenfilename(
+#                 initialdir=f"{environ['USERPROFILE']}/Documents",
+#                 title="Select File",
+#                 filetypes=(("Text files",
+#                             "*.txt*"),
+#                             ("all files",
+#                             "*.*")))
+#         return filename
 
 class Main_UI:
     def __init__(self):
@@ -14,9 +30,12 @@ class Main_UI:
         self.paned.grid(column=1,row=0)
         # Init window class for pane
         self.window = Window(self.master)
-        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 25))
+        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 30))
         self.window.refresh_list()
         self.paned.add(self.window)
+        
+        # self.files = FileIO(self.master)
+        
         # Init bar amt label
         self.label_bar_amt = Label(self.master, text="Number of bars:")
         self.label_bar_amt.grid(column=1, row=1, padx=29, sticky="w")
@@ -69,7 +88,7 @@ class Main_UI:
         self.master.after(5000, lambda: delete_error(self))
 
     def refresh_size(self):
-        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 25))
+        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 30))
     
     def button_update_stop(self, type):
         if self.window.test(self.window.input_list):
@@ -112,11 +131,11 @@ class Main_UI:
             self.edit_status("Sorting is in progress.")
         else:
             self.edit_status("Program is stuck, try resterting.")
-    
+
 class Window(PanedWindow):
     def __init__(self, parent, bar_len_mult=5, bar_width=15, bar_amt=50, sort_delay=100, def_color="white", def_sort_color="lightgreen"):
         # Create pane object, assign parent
-        PanedWindow.__init__(self, parent, width=bar_width * bar_amt, height=bar_amt * (bar_len_mult * 3/2 + 5), bg="red")
+        PanedWindow.__init__(self, parent, width=bar_width * bar_amt, height=bar_amt * (bar_len_mult * 3/2 + 10), bg="red")
         self.parent = parent
         # Create canvas object
         self.main_canvas = Canvas()
@@ -132,13 +151,13 @@ class Window(PanedWindow):
         self.r = False # Controls if sorting is in reverse
         self.stop = False # Controls pausing of sorting
         self.inprog = False # Controls inprogress
-        
+
     def refresh_list(self, custom_len=0):
         """Call to create new seq list up to self.bar_amt."""
         if not custom_len == self.bar_amt and not custom_len == 0:
             self.bar_amt = int(custom_len)
         # Todo: add random value option for list
-        self.input_list = [i for i in range(self.bar_amt)]
+        self.input_list = [i + 1 for i in range(self.bar_amt)]
         shuffle(self.input_list)
         self.update_canv()
 
