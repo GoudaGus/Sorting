@@ -1,24 +1,10 @@
 from tkinter import *
 from tkinter import filedialog
+from os import environ
 from algorithims import *
 from random import shuffle
 from time import sleep
-
-
-
-# class FileIO():
-#     def __init__(self, parent):
-        
-#     def file_explorer():
-#         # Open file explorer
-#         filename = filedialog.askopenfilename(
-#                 initialdir=f"{environ['USERPROFILE']}/Documents",
-#                 title="Select File",
-#                 filetypes=(("Text files",
-#                             "*.txt*"),
-#                             ("all files",
-#                             "*.*")))
-#         return filename
+"""Sort numbers either using a pregenerated list or import your own."""
 
 class Main_UI:
     def __init__(self):
@@ -33,16 +19,17 @@ class Main_UI:
         self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 30))
         self.window.refresh_list()
         self.paned.add(self.window)
-        
-        # self.files = FileIO(self.master)
-        
+        # Init files button
+        self.files = FileIO(self.master)
+        self.file_button = Button(self.master, text="Choose File...", command=lambda: self.startfile())
+        self.file_button.grid(column=1, row=2, padx=700, sticky="w")
         # Init bar amt label
         self.label_bar_amt = Label(self.master, text="Number of bars:")
         self.label_bar_amt.grid(column=1, row=1, padx=29, sticky="w")
         # Init bar amt entry
         self.entry_bar_amt = Entry(self.master)
         self.entry_bar_amt.insert(END, f"{self.window.bar_amt}")
-        self.entry_bar_amt.grid(column=1, row = 2, padx=30, sticky="w")
+        self.entry_bar_amt.grid(column=1, row=2, padx=30, sticky="w")
         # Init reverse box and var 
         self.r = BooleanVar()
         self.reverse_check = Checkbutton(self.master, text="Reverse sort", variable=self.r, onvalue=True, offvalue=False)
@@ -67,6 +54,27 @@ class Main_UI:
         # mainloop
         self.master.mainloop()
 
+    def startfile(self):
+        self.file_path = self.files.file_explorer()
+        if self.file_path[len(self.file_path)-4:len(self.file_path)].lower() == ".txt":
+            try:
+                with open(self.file_path, "r") as numberfile:
+                    try:
+                        filecont = [int(i.strip()) for i in numberfile.read().split(",")]
+                        self.window.input_list = filecont
+                        self.window.update_vars()
+                        self.refresh_size()
+                        self.window.update_canv()
+                        # self.entry_bar_amt.insert(END, f"{len(filecont)}")
+                        self.edit_status("Imported file successfully.", False)
+                    except ValueError:
+                        self.edit_status("File contents are not iterable.")
+                    numberfile.close()
+            except FileNotFoundError:
+                self.edit_status(f"{self.file_path} not found.")
+        else:
+            self.edit_status("File not does not end with '.txt'.")
+
     def change_amt_update(self):
         if not self.window.inprog:
             try:
@@ -81,14 +89,17 @@ class Main_UI:
         else:
             self.edit_status("Sorting is in progress.")
     
-    def edit_status(self, error_message):
-        def delete_error(self):
+    def edit_status(self, status_message, error=True):
+        def delete_status(self):
             self.label_status.config(text="")
-        self.label_status.config(text=f"Error: {error_message}")
-        self.master.after(5000, lambda: delete_error(self))
+        if error:
+            self.label_status.config(text=f"Error: {status_message}")
+        else:
+            self.label_status.config(text=f"{status_message}")
+        self.master.after(5000, lambda: delete_status(self))
 
     def refresh_size(self):
-        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 30))
+        self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.max * self.window.bar_len_mult + 30))
     
     def button_update_stop(self, type):
         if self.window.test(self.window.input_list):
@@ -170,6 +181,10 @@ class Window(PanedWindow):
         if not self.bar_color == self.def_color:
             self.bar_color = self.def_color
 
+    def update_vars(self):
+        self.max = max(self.input_list)
+        self.bar_amt = len(self.input_list)
+
     def test(self, input_list):
         if self.r:
             for i in range(len(input_list) - 1):
@@ -223,6 +238,21 @@ class Window(PanedWindow):
                 self.stop = False
         else:
             self.finished(0)
+
+
+class FileIO():
+    def __init__(self, parent):
+        self.parent = parent
+    def file_explorer(self):
+        # Open file explorer
+        filename = filedialog.askopenfilename(
+                initialdir=f"{environ['USERPROFILE']}/Documents",
+                title="Select File",
+                filetypes=(("Text files",
+                            "*.txt*"),
+                            ("all files",
+                            "*.*")))
+        return filename
 
 
 def main():
