@@ -44,3 +44,6 @@ def bogo_sort(input_list):
     """Use bogo soort on list."""
     shuffle(input_list)
     return input_list
+
+if __name__ == "__main__":
+    print("Use 'UI.py' to run this program.")
