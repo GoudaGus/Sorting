@@ -1,2 +1,4 @@
 # Sorting
-CS162 assignment
+CS162 final project
+
+Run using UI.py
