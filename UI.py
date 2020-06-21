@@ -81,6 +81,7 @@ class Main_UI:
                 if int(self.entry_bar_amt.get()) >= 2:
                     self.new_amt = int(self.entry_bar_amt.get())
                     self.window.refresh_list(self.new_amt)
+                    self.window.update_vars()
                     self.refresh_size()
                 else:
                     self.edit_status("Input is below 2.")
