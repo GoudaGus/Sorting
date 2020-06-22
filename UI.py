@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import filedialog
 from os import environ
+from traceback import format_exc
 from algorithims import *
 from random import shuffle
 from time import sleep
@@ -19,10 +20,17 @@ class Main_UI:
         self.paned.config(orient=VERTICAL, width=(self.window.bar_width * (self.window.bar_amt + .3)), height=(self.window.bar_amt * self.window.bar_len_mult + 30))
         self.window.refresh_list()
         self.paned.add(self.window)
+        # Init search items
+        self.entry_search = Entry(self.master)
+        self.entry_search.grid(column=1, row=2, padx=775, sticky="w")
+        self.label_search = Label(self.master, text="Search for number:")
+        self.label_search.grid(column=1, row=1, padx=775, sticky="w")
+        self.button_search = Button(self.master, text="Search", command=lambda: self.init_search())
+        self.button_search.grid(column=1, row=2, padx=900, sticky="w")
         # Init files button
         self.files = FileIO(self.master)
-        self.file_button = Button(self.master, text="Choose File...", command=lambda: self.startfile())
-        self.file_button.grid(column=1, row=2, padx=700, sticky="w")
+        self.file_button = Button(self.master, text="Choose File...", command=lambda: self.start_file())
+        self.file_button.grid(column=1, row=2, padx=655, sticky="w")
         # Init bar amt label
         self.label_bar_amt = Label(self.master, text="Number of bars:")
         self.label_bar_amt.grid(column=1, row=1, padx=29, sticky="w")
@@ -54,7 +62,25 @@ class Main_UI:
         # mainloop
         self.master.mainloop()
 
-    def startfile(self):
+    def init_search(self):
+        self.search_found = False
+        if self.entry_search.get() != "":
+            try:
+                self.search_int = int(self.entry_search.get())
+                if self.search_int in self.window.input_list:
+                    self.search_found = True
+                    self.window.update_search(self.search_int)
+                    self.edit_status(f"Success! The number {self.search_int} was found.", False)
+                else:
+                    self.edit_status(f"The number {self.search_int} cannot be found.", False)
+            except ValueError:
+                self.edit_status("Search query cannot be iterated.")
+            except: 
+                self.edit_status(f"Unexpected error: {format_exc()}")
+        else:
+            self.edit_status("Search must not be empty.")
+
+    def start_file(self):
         self.file_path = self.files.file_explorer()
         if self.file_path[len(self.file_path)-4:len(self.file_path)].lower() == ".txt":
             try:
@@ -66,13 +92,18 @@ class Main_UI:
                         self.refresh_size()
                         self.window.update_canv()
                         # self.entry_bar_amt.insert(END, f"{len(filecont)}")
+                        self.window.update_search(None)
                         self.edit_status("Imported file successfully.", False)
                     except ValueError:
                         self.edit_status("File contents are not iterable.")
+                    except: 
+                        self.edit_status(f"Unexpected error: {format_exc()}")
                     numberfile.close()
             except FileNotFoundError:
                 self.edit_status(f"{self.file_path} not found.")
-        else:
+            except: 
+                self.edit_status(f"Unexpected error: {format_exc()}")
+        elif self.file_path != "":
             self.edit_status("File not does not end with '.txt'.")
 
     def change_amt_update(self):
@@ -87,6 +118,8 @@ class Main_UI:
                     self.edit_status("Input is below 2.")
             except ValueError:
                 self.edit_status("Input cannot be interated.")
+            except: 
+                self.edit_status(f"Unexpected error: {format_exc()}")
         else:
             self.edit_status("Sorting is in progress.")
     
@@ -144,8 +177,9 @@ class Main_UI:
         else:
             self.edit_status("Program is stuck, try resterting.")
 
+
 class Window(PanedWindow):
-    def __init__(self, parent, bar_len_mult=5, bar_width=15, bar_amt=50, sort_delay=100, def_color="white", def_sort_color="lightgreen"):
+    def __init__(self, parent, bar_len_mult=5, bar_width=15, bar_amt=50, sort_delay=100, def_color="white", def_sort_color="lightgreen", def_search_color="lavender"):
         # Create pane object, assign parent
         PanedWindow.__init__(self, parent, width=bar_width * bar_amt, height=bar_amt * (bar_len_mult * 3/2 + 10), bg="red")
         self.parent = parent
@@ -160,12 +194,15 @@ class Window(PanedWindow):
         self.def_color = def_color
         self.bar_color = self.def_color
         self.def_sort_color = def_sort_color
-        self.r = False # Controls if sorting is in reverse
-        self.stop = False # Controls pausing of sorting
-        self.inprog = False # Controls inprogress
+        self.search_found_color = def_search_color
+        self.r = False  # Controls if sorting is in reverse
+        self.stop = False  # Controls pausing of sorting
+        self.inprog = False  # Controls inprogress
+        self.search_term = None
 
     def refresh_list(self, custom_len=0):
         """Call to create new seq list up to self.bar_amt."""
+        self.search_term = None
         if not custom_len == self.bar_amt and not custom_len == 0:
             self.bar_amt = int(custom_len)
         # Todo: add random value option for list
@@ -173,11 +210,20 @@ class Window(PanedWindow):
         shuffle(self.input_list)
         self.update_canv()
 
+    def update_search(self, term):
+        self.search_term = term
+        self.update_canv()
+
     def update_canv(self):
         """Call to clear canvas and redraw objects, will fill with green if sorting is finished."""
+        if not self.test(self.input_list):
+            self.bar_color = self.def_sort_color
         self.main_canvas.delete("all")
         for i in range(len(self.input_list)):
-            self.main_canvas.create_rectangle(i * self.bar_width, 0, i * self.bar_width + self.bar_width, self.input_list[i] * self.bar_len_mult, fill=self.bar_color)
+            if self.input_list[i] == self.search_term:
+                self.main_canvas.create_rectangle(i * self.bar_width, 0, i * self.bar_width + self.bar_width, self.input_list[i] * self.bar_len_mult, fill=self.search_found_color)
+            else:
+                self.main_canvas.create_rectangle(i * self.bar_width, 0, i * self.bar_width + self.bar_width, self.input_list[i] * self.bar_len_mult, fill=self.bar_color)
             self.main_canvas.create_text(i * self.bar_width + (self.bar_width / 2), self.input_list[i] * self.bar_len_mult + 15, text=self.input_list[i])
         if not self.bar_color == self.def_color:
             self.bar_color = self.def_color
@@ -199,7 +245,6 @@ class Window(PanedWindow):
             return False
 
     def finished(self, type):
-        self.bar_color = self.def_sort_color
         self.inprog = False
         self.update_canv()
 
@@ -240,7 +285,6 @@ class Window(PanedWindow):
         else:
             self.finished(0)
 
-
 class FileIO():
     def __init__(self, parent):
         self.parent = parent
@@ -258,8 +302,8 @@ class FileIO():
 
 def main():
     """Initialize program."""
-    _ = Main_UI()
-
+    mainUI = Main_UI()
+    
 
 if __name__ == "__main__":
     main()
