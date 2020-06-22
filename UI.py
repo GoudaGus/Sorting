@@ -7,13 +7,14 @@ from random import shuffle
 from time import sleep
 """Sort numbers either using a pregenerated list or import your own."""
 
+
 class Main_UI:
     def __init__(self):
         self.master = Tk()
         self.master.title("Sorting")
         self.master['bg'] = '#f2f2f2'
         # Init pane for window
-        self.paned = PanedWindow(self.master, orient=VERTICAL, width=800, height=600)
+        self.paned = PanedWindow(self.master,orient=VERTICAL, width=800, height=600)
         self.paned.grid(column=1,row=0)
         # Init window class for pane
         self.window = Window(self.master)
@@ -302,7 +303,7 @@ class FileIO():
 
 def main():
     """Initialize program."""
-    mainUI = Main_UI()
+    _ = Main_UI()
     
 
 if __name__ == "__main__":
